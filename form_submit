@@ -1,0 +1,61 @@
+function onFormSubmit(e) {
+  var sheet = e.source.getActiveSheet();
+  var lastRow = sheet.getLastRow();
+  var recipientColumn = 2; // Change this to the column number of the Equipment  
+  var formResponse = sheet.getRange(lastRow, recipientColumn).getValue(); 
+
+ var formUrl = 'https://docs.google.com/forms/d/e/1FAIpQLScz7JjZSpS_MpE5bII2uM5WkyXrmbD4KAeH4N_RpPIu-HOudQ/viewform'; // Replace with the URL of your Google Form
+
+  var subject = "Trouble Ticket Submission";
+  var message = "A Trouble Ticket has been submitted.\n\n";
+  message += "Form Link: " + formUrl + "\n\n";
+
+  // Get the form responses
+  var responses = sheet.getRange(lastRow, 1, 1, sheet.getLastColumn()).getValues()[0];
+
+  // Add the form responses to the email body
+  for (var i = 0; i < responses.length; i++) {
+    message += responses[i] + "\n\n";
+ }
+
+
+  // Determine the recipient based on the form response
+  //  the emails for the Owner Teams can be found at https://equipment.makespace.org/owners-and-contacts
+  var recipientEmail;
+  switch(formResponse) {
+    case "3D Printer (PLA)": recipientEmail = "3dprinters@makespace.org"; break;
+    case "3D Printer (ABS)": recipientEmail = "3dprinters@makespace.org"; break;
+    case "Form3 Resin Printer": recipientEmail = "3dprinters@makespace.org"; break;
+    case "MarkForge 3D Printer": recipientEmail = "3dprinters@makespace.org"; break;
+    case "Laser cutter (Jaws)": recipientEmail = "Laser_cutter-Owners@makespace.org"; break;
+    case "Laser cutter (Betsy)": recipientEmail = "Laser_cutter-Owners@makespace.org"; break;
+    case "Wood Lathe": recipientEmail = "wood-lathe-owners@makespace.org"; break;
+    case "Bandsaw": recipientEmail = "woodshop-owners@makespace.org"; break;
+    case "Belt Sander": recipientEmail = "woodshop-owners@makespace.org"; break;
+    case "Tormek": recipientEmail = "woodshop-owners@makespace.org"; break;
+    case "CNC Router": recipientEmail = "cnc-owners@makespace.org"; break;
+    case "CNC Mill": recipientEmail = "cnc-owners@makespace.org"; break;
+    case "Electronics Bench": recipientEmail = "electronics-owners@makespace.org"; break;
+    case "Training - Classrooms or training completion forms": recipientEmail = "owners@makespace.org"; break; 
+    case "Badger": recipientEmail = "owners@makespace.org"; break;
+    case "Wi-Fi / Computers / Printer": recipientEmail = "it-maintainers@makespace.org"; break;
+    case "Sewing Machines": recipientEmail = "craftroom-owners@makespace.org"; break;
+    case "AV Equipment": recipientEmail = "owners@makespace.org"; break;
+    case "Metal Lathe": recipientEmail = "metal-shop-owners@makespace.org"; break;
+    case "Metal Mill": recipientEmail = "metal-shop-owners@makespace.org"; break;
+    
+    // Add more cases for additional options
+    default: recipientEmail = "owners@makespace.org";
+  }
+
+    // Get the HTML content of the form
+  var formContent = UrlFetchApp.fetch(formUrl).getContentText();
+
+  // Send email
+  MailApp.sendEmail({
+    to: recipientEmail,
+    subject: subject,
+    body: message,
+    name: "The Makespace Owners" // Your name or organization's name
+  });
+}
