@@ -1,28 +1,48 @@
 function onFormSubmit(e) {
-  var sheet = e.source.getActiveSheet();
-  var lastRow = sheet.getLastRow();
-  var recipientColumn = 2; // Change this to the column number of the Equipment  
-  var formResponse = sheet.getRange(lastRow, recipientColumn).getValue(); 
 
- var formUrl = 'https://docs.google.com/forms/d/e/1FAIpQLScz7JjZSpS_MpE5bII2uM5WkyXrmbD4KAeH4N_RpPIu-HOudQ/viewform'; // Replace with the URL of your Google Form
+  const formUrl = 'https://docs.google.com/forms/d/19vC2GMsBd8qGPBOL2MdUIYn9t5a5nTQgh_zby6dObic/edit'; // Replace with the URL of your Google Form
 
-  var subject = "Trouble Ticket Submission";
-  var message = "A Trouble Ticket has been submitted.\n\n";
+  // Open the Forms file
+  const form = FormApp.getActiveForm();
+
+  // Gets the responses to the form
+  const formResponses = form.getResponses();
+
+  const subject = "Trouble Ticket Submission";
+  var message = "A new Trouble Ticket has been submitted.\n\n";
   message += "Form Link: " + formUrl + "\n\n";
+  // Logger.log("Message start: " + message);
 
-  // Get the form responses
-  var responses = sheet.getRange(lastRow, 1, 1, sheet.getLastColumn()).getValues()[0];
+  // Find the last response in the form
+  const lastRowIndex = formResponses.length - 1;
+  // Logger.log("Last row index: " + lastRowIndex);
 
-  // Add the form responses to the email body
-  for (var i = 0; i < responses.length; i++) {
-    message += responses[i] + "\n\n";
- }
+  const lastResponse = formResponses[lastRowIndex];
+  // Logger.log("Last response: " + lastResponse.toString);
 
+  const responseTimestamp = lastResponse.getTimestamp();
+  message += "Submitted on: " + responseTimestamp + "\n\n";
+  // Logger.log("Response timestamp: " + responseTimestamp);
+
+  const lastTicketResponses = lastResponse.getItemResponses();
+  // Add the Ticket's responses to the email body
+    for (var i = 0; i < lastTicketResponses.length; i++) {
+      const itemResponse = lastTicketResponses[i];
+      message += itemResponse.getItem().getTitle() + "\n\n";
+      message += itemResponse.getResponse() + "\n\n";
+  }
+  // Logger.log("Message complete: " + message);
+
+  // Get the equipment the ticket was about
+  const equipmentColumn = 0; // Change this to the column number of the Equipment  
+  const equipment = lastTicketResponses[equipmentColumn].getResponse();
+  // Logger.log("Equipment: " + equipment);
 
   // Determine the recipient based on the form response
   //  the emails for the Owner Teams can be found at https://equipment.makespace.org/owners-and-contacts
   var recipientEmail;
-  switch(formResponse) {
+  switch(equipment) {
+    case "Bamboo 3D Printer": recipientEmail = "3dprinters@makespace.org"; break;
     case "3D Printer (PLA)": recipientEmail = "3dprinters@makespace.org"; break;
     case "3D Printer (ABS)": recipientEmail = "3dprinters@makespace.org"; break;
     case "Form3 Resin Printer": recipientEmail = "3dprinters@makespace.org"; break;
@@ -40,6 +60,7 @@ function onFormSubmit(e) {
     case "Badger": recipientEmail = "owners@makespace.org"; break;
     case "Wi-Fi / Computers / Printer": recipientEmail = "it-maintainers@makespace.org"; break;
     case "Sewing Machines": recipientEmail = "craftroom-owners@makespace.org"; break;
+    case "Embroidery Machine": recipientEmail = "craftroom-owners@makespace.org"; break;
     case "AV Equipment": recipientEmail = "owners@makespace.org"; break;
     case "Metal Lathe": recipientEmail = "metal-shop-owners@makespace.org"; break;
     case "Metal Mill": recipientEmail = "metal-shop-owners@makespace.org"; break;
@@ -47,13 +68,11 @@ function onFormSubmit(e) {
     // Add more cases for additional options
     default: recipientEmail = "owners@makespace.org";
   }
+  Logger.log("Will email: " + recipientEmail + " + Makespace admins");
 
-    // Get the HTML content of the form
-  var formContent = UrlFetchApp.fetch(formUrl).getContentText();
-
-  // Send email
+  // Send email to the owners group + makespace admins
   MailApp.sendEmail({
-    to: recipientEmail,
+    to: recipientEmail + ",admin@makespace.org",
     subject: subject,
     body: message,
     name: "The Makespace Owners" // Your name or organization's name
