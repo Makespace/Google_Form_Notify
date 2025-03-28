@@ -15,14 +15,13 @@ function onFormSubmit(e) {
 
   // Find the last response in the form
   const lastRowIndex = formResponses.length - 1;
-  // Logger.log("Last row index: " + lastRowIndex);
-
   const lastResponse = formResponses[lastRowIndex];
-  // Logger.log("Last response: " + lastResponse.toString);
 
+  // Get the timestamp and email of submitter for the last ticket submitted
   const responseTimestamp = lastResponse.getTimestamp();
   message += "Submitted on: " + responseTimestamp + "\n\n";
-  // Logger.log("Response timestamp: " + responseTimestamp);
+  message += "By: " + lastResponse.getRespondentEmail() + "\n\n";
+  // Logger.log("Message time & email details: " + message);
 
   const lastTicketResponses = lastResponse.getItemResponses();
   // Add the Ticket's responses to the email body
@@ -68,7 +67,7 @@ function onFormSubmit(e) {
     // Add more cases for additional options
     default: recipientEmail = "owners@makespace.org";
   }
-  Logger.log("Will email: " + recipientEmail + " + Makespace admins");
+  // Logger.log("Will email: " + recipientEmail + " + Makespace admins");
 
   // Send email to the owners group + makespace admins
   MailApp.sendEmail({
@@ -77,4 +76,5 @@ function onFormSubmit(e) {
     body: message,
     name: "The Makespace Owners" // Your name or organization's name
   });
+  // Logger.log("Message sent");
 }
